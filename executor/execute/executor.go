@@ -66,7 +66,7 @@ func ListenForExecute() {
 			fmt.Println(err)
 		}
 		code := decodeUnwrap(msg.Code)
-		arg := decodeUnwrap(msg.Arg)
+		arg := msg.Arg
 		writeCodeToTempFile(code)
 		out := executeLambdaDocker(arg)
 

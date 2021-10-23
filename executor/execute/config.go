@@ -9,5 +9,5 @@ const (
 	RequestTopic  = "Request1"
 	ResponseTopic = "Response1"
 	// FunctionName todo: just for test
-	FunctionName = "test_function.blur"
+	FunctionName = "test_function.lambda_handler"
 )

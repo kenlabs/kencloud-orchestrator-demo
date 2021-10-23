@@ -22,7 +22,7 @@ async function getExecutor(): Promise<any> {
     }
 }
 
-async function execute(code: String, value: String): Promise<void> {
+async function execute(code: string, value: string): Promise<void> {
     let executorInfo = await getExecutor()
     let requestTopic = executorInfo.message.RequestTopic
     let responseTopic = executorInfo.message.ResponseTopic
@@ -32,7 +32,7 @@ async function execute(code: String, value: String): Promise<void> {
     const ipfs = IpfsHttpClient(IPFS_API);
     let msg = {
         'arg': value,
-        'code': code
+        'code': encodeURIComponent(window.btoa(code+'\n\n\n\n'))
     }
     let str = JSON.stringify(msg)
     let data = new Uint8Array(str.length)
@@ -43,7 +43,7 @@ async function execute(code: String, value: String): Promise<void> {
     await ipfs.pubsub.subscribe(responseTopic, msg => {
         console.log(`result reached:\n ${msg}`)
         const resultElem = document.querySelector("#result") as HTMLPreElement
-        resultElem.innerHTML = msg.data.toString()
+        resultElem.innerHTML = new TextDecoder().decode(msg.data)
     })
 }
 
