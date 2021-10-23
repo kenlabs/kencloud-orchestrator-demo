@@ -35,7 +35,7 @@ func executeLambdaDocker(data string) string {
 
 func ListenForExecute() {
 	// Where your local node is running on localhost:5001
-	sh := shell.NewShell("localhost:5001")
+	sh := shell.NewShell("http://52.14.211.248:5001")
 	sub, _ := sh.PubSubSubscribe(RequestTopic)
 	for true {
 		r, _ := sub.Next()

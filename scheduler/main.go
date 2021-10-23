@@ -7,7 +7,15 @@ import (
 
 func main() {
 	r := gin.Default()
+
+	r.OPTIONS("/execute", func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", "*")
+		c.Header("Access-Control-Allow-Headers", "Access-Control-Allow-Origin")
+		return
+	})
+
 	r.GET("/execute", func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", "*")
 		client := c.Query("client")
 		if client == "" {
 			c.JSON(400, gin.H{
