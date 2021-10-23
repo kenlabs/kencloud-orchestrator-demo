@@ -31,8 +31,20 @@
             position: relative;
             width: 70%;
         }
+
+        .result-container {
+            background-color: #282a36;
+            width: 70%;
+            height: 10rem;
+        }
+
+        .result {
+            text-align: justify;
+            padding-left: 1rem;
+            padding-top: 1rem;
+        }
     </style>
-<meta name="viewport" content="width=device-width, initial-scale=1"><script defer src="runtime.af109bb7f443e769b76a.js"></script><script defer src="vendors.5ab9e14103197f1571c1.js"></script><script defer src="main.7d41cdd340e407049901.js"></script></head>
+<meta name="viewport" content="width=device-width, initial-scale=1"><script defer src="runtime.af109bb7f443e769b76a.js"></script><script defer src="vendors.5ab9e14103197f1571c1.js"></script><script defer src="main.7275b64ae8bb9273b720.js"></script></head>
 
 <body class="d-flex h-100 text-center text-white bg-dark">
 <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
@@ -47,8 +59,12 @@
     </header>
     <main class="container">
         <div class="d-flex flex-column align-items-center">
-            <h1 style="margin-bottom: 5rem;">Upload your codes.</h1>
+            <h1 style="margin-bottom: 5rem;">Execute your codes over ipfs computing.</h1>
             <div id="editor"></div>
+            <HR style="FILTER: alpha(opacity=100,finishopacity=0,style=3)" width="70%" color=#987cb9 SIZE=3>
+            <div class="result-container">
+                <pre id="result" class="result">Waiting for result...</pre>
+            </div>
             <div class="input-group mb-3" style="width: 70%; margin-top: 3rem;">
                 <input id="fn-value" type="text" class="form-control" placeholder="Enter value" aria-label="fn value" aria-describedby="basic-addon2">
                 <div class="input-group-append">

@@ -41,7 +41,9 @@ async function execute(code: String, value: String): Promise<void> {
     }
     await ipfs.pubsub.publish(requestTopic, data)
     await ipfs.pubsub.subscribe(responseTopic, msg => {
-        console.log(msg)
+        console.log(`result reached:\n ${msg}`)
+        const resultElem = document.querySelector("#result") as HTMLPreElement
+        resultElem.innerHTML = msg.data.toString()
     })
 }
 
