@@ -46,7 +46,7 @@ func init() {
 }
 
 func ScheduleExecutorServer(client string) (*ExecutorServerInfo, error) {
-	servers := make([]*ExecutorServerInfo, len(schedulerMap))
+	servers := make([]*ExecutorServerInfo, 0)
 	for _, serverInfo := range schedulerMap {
 		servers = append(servers, serverInfo)
 	}
