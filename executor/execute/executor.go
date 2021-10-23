@@ -1,20 +1,39 @@
 package execute
 
 import (
-	"encoding/hex"
+	b64 "encoding/base64"
+	"encoding/json"
+	"fmt"
 	shell "github.com/ipfs/go-ipfs-api"
+	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
+	"strings"
 	"time"
 )
 
 type Message struct {
-	Action string `json:"action"`
-	Data   struct {
-		File  []byte `json:"file"`
-		Event string `json:"event"`
-		Code  string `json:"code"`
-	} `json:"data"`
+	Arg  string `json:"arg"`
+	Code string `json:"code"`
+}
+
+func decodeUnwrap(encoded string) string {
+	uEnv, _ := b64.URLEncoding.DecodeString(encoded)
+	return string(uEnv)
+}
+
+func writeCodeToTempFile(code string) {
+	path := FunctionPath // build the temp DIR
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		os.Mkdir(path, os.ModePerm)
+	}
+
+	// write the function file body to tmp
+	err := ioutil.WriteFile(FunctionPath+"/"+strings.Split(FunctionName, ".")[0]+".py", []byte(code), 0644)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func executeLambdaDocker(data string) string {
@@ -41,8 +60,15 @@ func ListenForExecute() {
 		r, _ := sub.Next()
 
 		//fmt.Println(string(r.Data))
-
-		out := executeLambdaDocker(hex.EncodeToString(r.Data))
+		var msg Message
+		err := json.Unmarshal(r.Data, &msg)
+		if err != nil {
+			fmt.Println(err)
+		}
+		code := decodeUnwrap(msg.Code)
+		arg := decodeUnwrap(msg.Arg)
+		writeCodeToTempFile(code)
+		out := executeLambdaDocker(arg)
 
 		// fmt.Println(out)
 
