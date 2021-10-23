@@ -24,6 +24,7 @@ func decodeUnwrap(encoded string) string {
 }
 
 func writeCodeToTempFile(code string) {
+	fmt.Println("start writing the code in temp dir")
 	path := FunctionPath // build the temp DIR
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		os.Mkdir(path, os.ModePerm)
@@ -34,6 +35,7 @@ func writeCodeToTempFile(code string) {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println("end writing code")
 }
 
 func executeLambdaDocker(data string) string {
@@ -43,6 +45,7 @@ func executeLambdaDocker(data string) string {
 		"lambci/lambda:python3.7", FunctionName, data,
 	}
 	out, err := exec.Command(cmd, args...).Output()
+	fmt.Println("got error while executing the work")
 	if err != nil {
 		if err, ok := err.(*exec.ExitError); ok {
 			log.Fatal(string(err.Stderr))
@@ -68,12 +71,14 @@ func ListenForExecute() {
 		code := decodeUnwrap(msg.Code)
 		arg := msg.Arg
 		writeCodeToTempFile(code)
+		fmt.Println("executor starts working")
 		out := executeLambdaDocker(arg)
-
+		fmt.Println("got result from executor")
 		// fmt.Println(out)
-
+		fmt.Println("publish the result to pubsub")
 		sh.PubSubPublish(ResponseTopic, out)
 
+		fmt.Println("end rightly")
 		time.Sleep(time.Second)
 	}
 }
