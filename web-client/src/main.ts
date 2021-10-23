@@ -60,7 +60,14 @@ function setupEditor(): ace.Ace.Editor {
 }
 
 function main(): void {
+    // set client id
+    const clientIdElem = document.querySelector("#client-id") as HTMLPreElement
+    clientIdElem.innerHTML = CLIENT_ID
+
+    // create code editor
     const editor = setupEditor();
+
+    // code execution
     const executeBtn = document.querySelector("#execute")
     executeBtn?.addEventListener("click", (e: Event): void => {
         const customCodes = editor.getValue()
@@ -69,7 +76,7 @@ function main(): void {
             console.log("fn-value input does not exist")
             return
         }
-        execute(customCodes, fnValueInput.value).then()
+        execute(customCodes, fnValueInput.value).then(()=>console.log("execute complete."))
     })
 }
 
