@@ -26,8 +26,13 @@
                 font-size: 3.5rem;
             }
         }
+
+        #editor {
+            position: relative;
+            width: 70%;
+        }
     </style>
-<meta name="viewport" content="width=device-width, initial-scale=1"><script defer src="runtime.d5a5cd230196dd8dd408.js"></script><script defer src="vendors.f8fbce62928b24a8e630.js"></script><script defer src="main.5d43a96cab2abc005227.js"></script></head>
+<meta name="viewport" content="width=device-width, initial-scale=1"><script defer src="runtime.af109bb7f443e769b76a.js"></script><script defer src="vendors.5ab9e14103197f1571c1.js"></script><script defer src="main.7d41cdd340e407049901.js"></script></head>
 
 <body class="d-flex h-100 text-center text-white bg-dark">
 <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
@@ -40,15 +45,19 @@
             </nav>
         </div>
     </header>
-    <main class="px-3">
-        <h1>Upload your picture.</h1>
-        <div class="input-group">
-            <input type="file" class="form-control" id="inputFile" aria-describedby="inputFile" aria-label="Upload">
-            <button class="btn btn-success" type="button" id="btnUpload">Upload</button>
+    <main class="container">
+        <div class="d-flex flex-column align-items-center">
+            <h1 style="margin-bottom: 5rem;">Upload your codes.</h1>
+            <div id="editor"></div>
+            <div class="input-group mb-3" style="width: 70%; margin-top: 3rem;">
+                <input id="fn-value" type="text" class="form-control" placeholder="Enter value" aria-label="fn value" aria-describedby="basic-addon2">
+                <div class="input-group-append">
+                    <button id="execute" class="btn btn-outline-secondary" type="button">Execute</button>
+                </div>
+            </div>
         </div>
-        <div>
-            <img id="result" src=""  alt="result"/>
-        </div>
+
+
     </main>
     <footer class="mt-auto text-white-50">
         <p>by KEN Labs.</p>

@@ -1,5 +1,8 @@
 import axios from "axios"
 import {create as IpfsHttpClient} from 'ipfs-http-client'
+import * as ace from 'ace-builds';
+import 'ace-builds/webpack-resolver';
+
 
 const FILE_LIMIT_MB = 1.5;
 const FILE_LIMIT_BYTES = FILE_LIMIT_MB * 1024 * 1024;
@@ -19,7 +22,7 @@ async function getExecutor(): Promise<any> {
     }
 }
 
-async function upload(file: File) {
+async function execute(code: String, value: String): Promise<void> {
     let executorInfo = await getExecutor()
     let requestTopic = executorInfo.message.RequestTopic
     let responseTopic = executorInfo.message.ResponseTopic
@@ -27,53 +30,44 @@ async function upload(file: File) {
 
     // @ts-ignore
     const ipfs = IpfsHttpClient(IPFS_API);
-    file.arrayBuffer().then(buf => {
-        const data = new Uint8Array(buf)
-        ipfs.pubsub.publish(requestTopic, data)
-        console.log(`data sent: ${data}`)
-    })
-
+    let msg = {
+        'arg': value,
+        'code': code
+    }
+    let str = JSON.stringify(msg)
+    let data = new Uint8Array(str.length)
+    for (let i = 0; i < str.length; i++) {
+        data[i] = str.charCodeAt(i);
+    }
+    await ipfs.pubsub.publish(requestTopic, data)
     await ipfs.pubsub.subscribe(responseTopic, msg => {
         console.log(msg)
     })
 }
 
-function checkFileSize(file: File): boolean {
-    let file_ok = false;
-    let alertDiv = document.querySelector(".alert");
-    if (alertDiv) {
-        document.querySelector("main")?.removeChild(alertDiv);
-    }
-    if (file.size <= FILE_LIMIT_BYTES) {
-        file_ok = true;
-        return file_ok;
-    }
-    let warning = document.createElement("div");
-    warning.classList.add("mt-3", "alert", "alert-warning");
-    warning.setAttribute("role", "alert");
-    warning.textContent = "File is too large. Limit: " + FILE_LIMIT_MB + "MB";
-    document.querySelector("main")?.appendChild(warning);
-    return file_ok;
+function setupEditor(): ace.Ace.Editor {
+    const editor = ace.edit("editor", {
+        mode: "ace/mode/html",
+        theme: "ace/theme/dracula",
+        maxLines: 30,
+        minLines: 20,
+        fontSize: 14,
+    });
+    editor.session.setMode("ace/mode/python")
+    return editor;
 }
 
 function main(): void {
-    const inputFile = document.querySelector("#inputFile")
-    inputFile?.addEventListener("change", (e: Event): void => {
-        let input;
-        if (e !== null) {
-            input = <HTMLInputElement>e.target;
+    const editor = setupEditor();
+    const executeBtn = document.querySelector("#execute")
+    executeBtn?.addEventListener("click", (e: Event): void => {
+        const customCodes = editor.getValue()
+        const fnValueInput = document.querySelector("#fn-value") as HTMLInputElement
+        if (fnValueInput == null) {
+            console.log("fn-value input does not exist")
+            return
         }
-        if (input?.files) {
-            console.log(input.value);
-            let file = input.files[0];
-            checkFileSize(file);
-            const btnUpload = document.querySelector("#btnUpload");
-            btnUpload?.addEventListener("click", () => {
-                upload(file).then(r => {
-                    console.log("file uploaded.")
-                })
-            })
-        }
+        execute(customCodes, fnValueInput.value).then()
     })
 }
 
