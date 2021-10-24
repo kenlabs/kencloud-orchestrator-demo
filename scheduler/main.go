@@ -2,6 +2,7 @@ package main
 
 import (
 	"PubSubScheduler/schedule"
+	"fmt"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,8 +24,9 @@ func main() {
 			})
 			return
 		}
-
+		fmt.Println("selecting the executor.")
 		executorServer, err := schedule.ScheduleExecutorServer(client)
+		fmt.Println("got the executor: ", executorServer.PeerID)
 		if err != nil {
 			c.JSON(409, gin.H{
 				"message": err.Error(),
@@ -35,6 +37,7 @@ func main() {
 		c.JSON(200, gin.H{
 			"message": executorServer,
 		})
+		fmt.Println("response rightly")
 	})
 
 	r.Run(":8769") //
