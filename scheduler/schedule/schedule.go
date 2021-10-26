@@ -1,9 +1,10 @@
 package schedule
 
 import (
-	cid "github.com/ipfs/go-cid"
-	mh "github.com/multiformats/go-multihash"
-	"log"
+	"bytes"
+	"encoding/json"
+	"fmt"
+	shell "github.com/ipfs/go-ipfs-api"
 	"math/rand"
 )
 
@@ -29,23 +30,18 @@ var schedulerMap = map[string]*ExecutorServerInfo{
 }
 
 func init() {
-	pref := cid.Prefix{
-		Version:  1,
-		Codec:    cid.Raw,
-		MhType:   mh.SHA2_256,
-		MhLength: -1, // default length
-	}
-
-	for c, info := range schedulerMap {
-		peercid, err := pref.Sum([]byte(c))
+	ipfsApi := shell.NewShell("http://52.14.211.248:5001")
+	for _, executorInfo := range schedulerMap {
+		serializedInfo, _ := json.Marshal(executorInfo)
+		executorCid, err := ipfsApi.Add(bytes.NewReader(serializedInfo))
 		if err != nil {
-			log.Fatal(err)
+			fmt.Printf("Err: add executor to ipfs failed, error: %v", err)
 		}
-		info.PeerID = peercid.String()
+		executorInfo.PeerID = executorCid
 	}
 }
 
-func ScheduleExecutorServer(client string) (*ExecutorServerInfo, error) {
+func GetIdleExecutor(client string) (*ExecutorServerInfo, error) {
 	servers := make([]*ExecutorServerInfo, 0)
 	for _, serverInfo := range schedulerMap {
 		servers = append(servers, serverInfo)

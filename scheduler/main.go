@@ -25,7 +25,7 @@ func main() {
 			return
 		}
 		fmt.Println("selecting the executor.")
-		executorServer, err := schedule.ScheduleExecutorServer(client)
+		executorServer, err := schedule.GetIdleExecutor(client)
 		fmt.Println("got the executor: ", executorServer.PeerID)
 		if err != nil {
 			c.JSON(409, gin.H{
@@ -40,5 +40,7 @@ func main() {
 		fmt.Println("response rightly")
 	})
 
-	r.Run(":8769") //
+	if err := r.Run(":8769"); err != nil {
+		return
+	}
 }
