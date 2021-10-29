@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	shell "github.com/ipfs/go-ipfs-api"
+	"math/rand"
 )
 
 type ExecutorServerInfo struct {
@@ -46,6 +47,5 @@ func GetIdleExecutor(client string) (*ExecutorServerInfo, error) {
 		servers = append(servers, serverInfo)
 	}
 
-	//return servers[rand.Intn(len(schedulerMap))], nil
-	return schedulerMap["client1"], nil
+	return servers[rand.Intn(len(schedulerMap))], nil
 }

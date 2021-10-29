@@ -112,7 +112,7 @@ wasm-opt = false`
 		return
 	}
 
-	cmd := exec.Command("/Users/ben/.cargo/bin/cargo", "wasi", "build", "--release")
+	cmd := exec.Command("cargo", "wasi", "build", "--release")
 	cmd.Dir = BaseDir
 	_, err = cmd.Output()
 	if err != nil {
