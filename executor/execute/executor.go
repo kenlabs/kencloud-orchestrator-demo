@@ -1,12 +1,14 @@
 package execute
 
 import (
+	"bytes"
 	b64 "encoding/base64"
 	"encoding/json"
 	"fmt"
 	shell "github.com/ipfs/go-ipfs-api"
 	"io/ioutil"
 	"log"
+	"net/url"
 	"os"
 	"os/exec"
 	"strings"
@@ -18,8 +20,19 @@ type Message struct {
 	Code string `json:"code"`
 }
 
+type Response struct {
+	CodesCid  string
+	AbiCid    string
+	ArgsCid   string
+	ResultCid string
+	Err       string
+}
+
+var sh = shell.NewShell("http://52.14.211.248:5001")
+
 func decodeUnwrap(encoded string) string {
-	uEnv, _ := b64.URLEncoding.DecodeString(encoded)
+	encoded, _ = url.QueryUnescape(encoded)
+	uEnv, _ := b64.StdEncoding.DecodeString(encoded)
 	return string(uEnv)
 }
 
@@ -27,7 +40,7 @@ func writeCodeToTempFile(code string) {
 	fmt.Println("start writing the code in temp dir")
 	path := FunctionPath // build the temp DIR
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		os.Mkdir(path, os.ModePerm)
+		_ = os.Mkdir(path, os.ModePerm)
 	}
 
 	// write the function file body to tmp
@@ -55,30 +68,72 @@ func executeLambdaDocker(data string) string {
 	return string(out)
 }
 
+func ResponseError(err error) error {
+	respObj := &Response{
+		Err: err.Error(),
+	}
+	resp, _ := json.Marshal(respObj)
+
+	err = sh.PubSubPublish(ResponseTopic, string(resp))
+	if err != nil {
+		return fmt.Errorf("publish error failed, error: %v", err)
+	}
+	fmt.Printf("responsed an error: %v\n", respObj)
+	return nil
+}
+
+func checkErr(err error) bool {
+	if err != nil {
+		if err = ResponseError(err); err != nil {
+			panic(err)
+		}
+		return true
+	}
+	return false
+}
+
 func ListenForExecute() {
 	// Where your local node is running on localhost:5001
-	sh := shell.NewShell("http://52.14.211.248:5001")
 	sub, _ := sh.PubSubSubscribe(RequestTopic)
 	for true {
 		r, _ := sub.Next()
 
-		//fmt.Println(string(r.Data))
 		var msg Message
 		err := json.Unmarshal(r.Data, &msg)
-		if err != nil {
-			fmt.Println(err)
+		if checkErr(err) {
+			continue
 		}
 		code := decodeUnwrap(msg.Code)
-		arg := msg.Arg
-		writeCodeToTempFile(code)
-		fmt.Println("executor starts working")
-		out := executeLambdaDocker(arg)
-		fmt.Println("got result from executor")
-		// fmt.Println(out)
-		fmt.Println("publish the result to pubsub")
-		sh.PubSubPublish(ResponseTopic, out)
+		codesCid, abiCid, err := deployCodes([]byte(code), "main", []string{msg.Arg})
+		if checkErr(err) {
+			continue
+		}
 
-		fmt.Println("end rightly")
+		// execute codes
+		result, err := invoke(abiCid)
+		if checkErr(err) {
+			continue
+		}
+
+		resultCid, err := sh.Add(bytes.NewReader([]byte(fmt.Sprint(result))))
+		if checkErr(err) {
+			continue
+		}
+
+		fmt.Println(result)
+		// publish abi cid to response topic for test
+		respObj := &Response{
+			CodesCid:  codesCid.String(),
+			AbiCid:    abiCid.String(),
+			ResultCid: resultCid,
+		}
+		resp, _ := json.Marshal(respObj)
+		err = sh.PubSubPublish(ResponseTopic, string(resp))
+		if checkErr(err) {
+			continue
+		}
+		fmt.Printf("responsed result: %v", respObj)
+
 		time.Sleep(time.Second)
 	}
 }
